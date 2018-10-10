@@ -24,7 +24,10 @@
     <artifactId>kapua-hono</artifactId>
 
     <modules>
+        <module>connector-lifecycle</module>
+        <module>processor-commons</module>
         <module>processor-datastore</module>
+        <module>processor-lifecycle</module>
     </modules>
 
 </project>

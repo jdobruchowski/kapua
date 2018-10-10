@@ -22,7 +22,7 @@ public class ClientOptions {
         USERNAME,
         PASSWORD,
         TENANT_ID,
-        CLIENT_ID,
+        NAME,
         MESSAGE_TYPE,
         TRUSTSTORE_FILE,
         MAXIMUM_RECONNECTION_ATTEMPTS,
@@ -61,6 +61,11 @@ public class ClientOptions {
 
     public Integer getInt(HonoClientOptions key, Integer defaultValue) {
         Integer tmp = (Integer)options.get(key.name());
+        return (tmp!=null ? tmp : defaultValue);
+    }
+
+    public Long getLong(HonoClientOptions key, Long defaultValue) {
+        Long tmp = (Long)options.get(key.name());
         return (tmp!=null ? tmp : defaultValue);
     }
 

@@ -26,7 +26,6 @@ public class ProcessorContextConfig extends ObjectContextConfig {
     protected void configure() {
         super.configure();
         bind(MainVerticle.class);
-        bind(SourceConfiguration.class);
         bind(HttpServiceVerticle.class);
         bind(JAXBContextProvider.class).to(JAXBContextProviderImpl.class);
         bind(MessageProcessorVerticle.class).to(HonoDatastoreProcessorVerticle.class);

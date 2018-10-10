@@ -24,6 +24,7 @@ public class Properties {
     public static final String MESSAGE_ORIGINAL_DESTINATION = new String("message-destination");
     public static final String MESSAGE_QOS = new String("message-qos");
     public static final String MESSAGE_TYPE = new String("message-type");
+    public static final String MESSAGE_CONTENT = new String("message-content");
     public static final String MESSAGE_ENQUEUED_TIMESTAMP = "enqueuedTimestamp";
     public static final String MESSAGE_BROKER_ID = "brokerId";
     public static final String MESSAGE_CLIENT_ID = "clientId";

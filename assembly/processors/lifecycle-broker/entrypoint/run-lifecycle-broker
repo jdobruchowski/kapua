@@ -13,10 +13,11 @@
 
 java -jar \
 -Dcommons.db.schema.update=true \
--Dcommons.db.connection.host=db \
--Dcommons.db.connection.port=3306 \
--Dbroker.host=broker \
--Dkapua.lifecycleProcessor.messageSource.amqp.host=broker \
--Dkapua.lifecycleProcessor.errorTarget.amqp.host=broker \
--Dcommons.eventbus.url="failover:(amqp://events-broker:5682)?jms.sendTimeout=1000" \
+-Dcommons.db.connection.host=${SQL_DB_ADDR} \
+-Dcommons.db.connection.port=${SQL_DB_PORT} \
+-Dbroker.host=${BROKER_ADDR} \
+-Dbroker.port=${BROKER_PORT} \
+-Dkapua.lifecycleProcessor.messageSource.amqp.host=${BROKER_ADDR} \
+-Dkapua.lifecycleProcessor.errorTarget.amqp.host=${BROKER_ADDR} \
+-Dcommons.eventbus.url="${SERVICE_BROKER_ADDR}" \
 kapua-processor-lifecycle-broker-1.1.0-SNAPSHOT-uber.jar

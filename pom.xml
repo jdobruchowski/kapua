@@ -977,7 +977,27 @@
             </dependency>
             <dependency>
                 <groupId>org.eclipse.kapua</groupId>
+                <artifactId>kapua-processor-commons-hono</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.kapua</groupId>
+                <artifactId>kapua-processor-datastore-hono</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.kapua</groupId>
+                <artifactId>kapua-processor-lifecycle-hono</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.kapua</groupId>
                 <artifactId>kapua-connector-hono</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.kapua</groupId>
+                <artifactId>kapua-connector-lifecycle-hono</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -992,12 +1012,12 @@
             </dependency>
             <dependency>
                 <groupId>org.eclipse.kapua</groupId>
-                <artifactId>kapua-datastore-connector</artifactId>
+                <artifactId>kapua-connector-datastore</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.kapua</groupId>
-                <artifactId>kapua-lifecycle-connector</artifactId>
+                <artifactId>kapua-connector-lifecycle</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1021,6 +1041,16 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.eclipse.kapua</groupId>
+                <artifactId>kapua-assembly-extras</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.kapua</groupId>
+                <artifactId>kapua-assembly-extras-hono</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <!-- External dependencies -->
             <dependency>
                 <groupId>commons-beanutils</groupId>

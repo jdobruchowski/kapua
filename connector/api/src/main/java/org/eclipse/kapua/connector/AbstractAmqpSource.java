@@ -93,7 +93,11 @@ public abstract class AbstractAmqpSource<M> implements MessageSource<M> {
             String content = (String) ((AmqpValue) body).getValue();
             logger.debug("Received message with content: {}", content);
             return content != null ? content.getBytes() : new byte[0];
-        } else {
+        } else if (body == null) {
+            logger.warn("Received empty message!");
+            return null;
+        }
+        else {
             logger.warn("Received message with unknown message type! ({})", body != null ? body.getClass() : "null");
             return new byte[0];
         }

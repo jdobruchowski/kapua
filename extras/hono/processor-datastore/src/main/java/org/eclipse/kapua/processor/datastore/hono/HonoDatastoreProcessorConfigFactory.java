@@ -12,9 +12,9 @@
 package org.eclipse.kapua.processor.datastore.hono;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.eclipse.kapua.broker.client.hono.HonoClient;
+import org.eclipse.kapua.commons.core.Configuration;
 import org.eclipse.kapua.commons.core.ObjectFactory;
 import org.eclipse.kapua.commons.core.vertx.HealthCheckAdapter;
 import org.eclipse.kapua.connector.Properties;
@@ -25,6 +25,7 @@ import org.eclipse.kapua.datastore.connector.DatastoreTarget;
 import org.eclipse.kapua.message.transport.TransportMessage;
 import org.eclipse.kapua.message.transport.TransportMessageType;
 import org.eclipse.kapua.processor.commons.MessageProcessorConfig;
+import org.eclipse.kapua.processor.commons.hono.HonoConsumerConfig;
 
 import io.vertx.core.Vertx;
 import io.vertx.ext.healthchecks.HealthCheckHandler;
@@ -32,31 +33,24 @@ import io.vertx.ext.healthchecks.Status;
 
 public class HonoDatastoreProcessorConfigFactory implements ObjectFactory<MessageProcessorConfig<byte[], TransportMessage>> {
 
+    private static final String CONFIG_PROP_PROCESSOR = "kapua.datastoreProcessor";
+    private static final String CONFIG_PROP_PROCESSOR_MSG_SOURCE_HONO = "kapua.datastoreProcessor.messageSource.hono";
+
     @Inject
     private Vertx vertx;
 
     @Inject
-    @Named("kapua.vertx-app.event-bus-server.default-address")
-    private String ebAddress;
-
-    @Inject
-    @Named("kapua.vertx-app.event-bus-server.health-address")
-    private String healthCheckEBAddress;
-
-    @Inject 
-    private ConnectionConfiguration connectionConfig;
-
-    @Inject 
-    private SourceConfiguration sourceConfig;
+    Configuration configuration;
 
     @Override
     public MessageProcessorConfig<byte[], TransportMessage> create() {
 
-        MessageProcessorConfig<byte[], TransportMessage> config = new MessageProcessorConfig<byte[], TransportMessage>();
+        MessageProcessorConfig<byte[], TransportMessage> config = MessageProcessorConfig.<byte[], TransportMessage>create(CONFIG_PROP_PROCESSOR, configuration);
 
-        // Amqp Source
-        AmqpHonoSource consumer = AmqpHonoSource.create(vertx, new HonoClient(vertx, sourceConfig.createClientOptions(connectionConfig)));
-        consumer.messageFilter(message -> {
+        // Hono Source
+        HonoConsumerConfig honoSourceConfig = HonoConsumerConfig.create(CONFIG_PROP_PROCESSOR_MSG_SOURCE_HONO, configuration);
+        AmqpHonoSource source = AmqpHonoSource.create(vertx, new HonoClient(vertx, honoSourceConfig.createClientOptions()));
+        source.messageFilter(message -> {
             Object messageType = message.getProperties().get(Properties.MESSAGE_TYPE);
             if (messageType!=null && messageType instanceof TransportMessageType && TransportMessageType.TELEMETRY.equals(messageType)) {
                 return true;
@@ -65,13 +59,13 @@ public class HonoDatastoreProcessorConfigFactory implements ObjectFactory<Messag
                 return false;
             }
         });
-        config.setMessageSource(consumer);
+        config.setMessageSource(source);
         config.getHealthCheckAdapters().add(new HealthCheckAdapter() {
 
             @Override
             public void register(HealthCheckHandler handler) {
-                handler.register("AmqpTransportActiveMQConsumer", statusEvent -> {
-                    if (consumer != null && consumer.isConnected()) {
+                handler.register("AmqpTransportHonoConsumer", statusEvent -> {
+                    if (source != null && source.isConnected()) {
                         statusEvent.complete(Status.OK());
                     } else {
                         statusEvent.complete(Status.KO());
@@ -119,8 +113,6 @@ public class HonoDatastoreProcessorConfigFactory implements ObjectFactory<Messag
             }
         });
 
-        config.setEBAddress(ebAddress);
-        config.setHealthCheckEBAddress(healthCheckEBAddress);
         return config;
     }
 }

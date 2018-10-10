@@ -578,7 +578,7 @@ public class KapuaSecurityBrokerFilter extends BrokerFilter {
         }
         else {
             ActiveMQQueue destinationQueue = (ActiveMQQueue) destination;
-            logger.info(destinationQueue.toString());
+            logger.info("Queue destination {}", destinationQueue);
             messageSend.setProperty(Properties.MESSAGE_ORIGINAL_DESTINATION, destinationQueue.getQueueName().substring(VT_TOPIC_PREFIX.length()));
         }
         publishMetric.getAllowedMessages().inc();
