@@ -29,7 +29,7 @@
 ERROR=0
 DOCKER_ACCOUNT=${DOCKER_ACCOUNT:=kapua}
 IMAGE_VERSION=${IMAGE_VERSION:=latest}
-SERVICES=("console" "api" "sql" "broker" "events-broker")
+SERVICES=("console" "api" "sql" "broker" "events-broker" "datastore-hono" "lifecycle-hono")
 TMP_DIR="/tmp/kapua-containers-$(date +%s)"
 
 echo "Creating tmp directory: ${TMP_DIR}..."

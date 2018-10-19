@@ -12,18 +12,15 @@
 ###############################################################################
 
 #
-# This deploys Kapua Docker images into the Minishift VM.
+# This script removes the `eclipse-kapua` application from the Openshift.
 #
-# First it sets the envs to use the `openshift-initialize.sh` and `openshift-deploy.sh`
-# in the `kapua-openshift` module.
+# First it sets the envs to use the `openshift-destroy.sh` in the `kapua-openshift` module.
 #
-# Then moves into the `kapua-openshift` module root directory and runs
-# `openshift-initialize.sh` and `openshift-deploy.sh`
+# Then moves into the `kapua-openshift` module root directory and runs `openshift-destroy.sh`.
 #
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-OPENSHIFT_SCRIPT_DIR="${SCRIPT_DIR}/../openshift"
-
+OPENSHIFT_SCRIPT_DIR="${SCRIPT_DIR}/../../openshift"
 
 (
     pushd ${OPENSHIFT_SCRIPT_DIR}
@@ -32,9 +29,7 @@ OPENSHIFT_SCRIPT_DIR="${SCRIPT_DIR}/../openshift"
     eval $(minishift oc-env)
     export OPENSHIFT_HOST=$(minishift ip):8443
 
-    ./openshift-initialize.sh
-
-    ./openshift-deploy.sh
+    ./openshift-destroy.sh
 
     popd
 )

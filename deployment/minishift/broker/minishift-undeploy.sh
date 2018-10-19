@@ -20,7 +20,7 @@
 #
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-OPENSHIFT_SCRIPT_DIR="${SCRIPT_DIR}/../openshift"
+OPENSHIFT_SCRIPT_DIR="${SCRIPT_DIR}/../../openshift"
 
 (
     pushd ${OPENSHIFT_SCRIPT_DIR}
