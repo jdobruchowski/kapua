@@ -12,6 +12,7 @@
 package org.eclipse.kapua.broker.client.amqp;
 
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.qpid.proton.message.Message;
@@ -36,6 +37,9 @@ public abstract class AbstractAmqpClient {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractAmqpClient.class);
 
+    public final CountDownLatch connectionTimeout;
+    protected final CountDownLatch receiverTimeout;
+    protected final CountDownLatch senderTimeout;
     private boolean disconnecting;
     private boolean connected;
     private AtomicInteger reconnectionFaultCount = new AtomicInteger();
@@ -60,6 +64,10 @@ public abstract class AbstractAmqpClient {
 
     protected AbstractAmqpClient(Vertx vertx, ClientOptions clientOptions) {
         this.vertx = vertx;
+        connectionTimeout = new CountDownLatch(1);
+        receiverTimeout = new CountDownLatch(1);
+        senderTimeout = new CountDownLatch(1);
+        logger.info("##################Vertx: {}", vertx);
         this.clientOptions = clientOptions;
         brokerHost = clientOptions.getString(AmqpClientOptions.BROKER_HOST);
         brokerPort = clientOptions.getInt(AmqpClientOptions.BROKER_PORT, null);
@@ -88,6 +96,7 @@ public abstract class AbstractAmqpClient {
         else {
             waitBetweenReconnect = new Integer(1000);
         }
+        options.setMaxFrameSize(1024*1024);
         logger.info("Created client {}", client);
     }
 
@@ -169,6 +178,7 @@ public abstract class AbstractAmqpClient {
                     if(ar.succeeded()) {
                         logger.info("Succeeded establishing consumer link! (client: {})", client);
                         setConnected();
+                        setReceiverConnected();
                     }
                     else {
                         logger.warn("Cannot establish link! (client: {})", client, ar.cause());
@@ -196,8 +206,12 @@ public abstract class AbstractAmqpClient {
         //do nothing (to be overwritten by children, if needed)
     }
 
-    public boolean isConnected() {
+    public Boolean isConnected() {
         return connected;
+    }
+
+    protected void setDisconnected() {
+        connected = false;
     }
 
     protected void setConnected() {
@@ -210,10 +224,11 @@ public abstract class AbstractAmqpClient {
 
     public void disconnect(Future<Void> stopFuture) {
         disconnecting = true;
-        logger.info("Closing connection {} for client {}...", connection, client);
+        logger.info("Closing connection {} for client {}", connection, client);
+        clean();
         if (connection != null) {
             connection.disconnect();
-            logger.info("Closing connection {} for client {}... DONE", connection, client);
+            logger.info("Closing connection {} for client {} DONE", connection, client);
             connection = null;
         }
         //in any case complete with a positive result the future
