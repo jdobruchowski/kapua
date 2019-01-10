@@ -11,21 +11,25 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.job.execution.internal;
 
-import java.util.Date;
-
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
 import org.eclipse.kapua.commons.model.AbstractKapuaUpdatableEntity;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.job.execution.JobExecution;
+
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity(name = "JobExecution")
 @Table(name = "job_job_execution")
@@ -47,6 +51,13 @@ public class JobExecutionImpl extends AbstractKapuaUpdatableEntity implements Jo
     @Column(name = "ended_on", nullable = true, updatable = true)
     public Date endedOn;
 
+    @ElementCollection
+    @CollectionTable(name = "job_job_execution_target", joinColumns = @JoinColumn(name = "execution_id", referencedColumnName = "id"))
+    @AttributeOverrides({
+            @AttributeOverride(name = "eid", column = @Column(name = "target_id", nullable = false, updatable = false))
+    })
+    private Set<KapuaEid> targetIds;
+
     public JobExecutionImpl() {
     }
 
@@ -64,20 +75,46 @@ public class JobExecutionImpl extends AbstractKapuaUpdatableEntity implements Jo
         this.jobId = KapuaEid.parseKapuaId(jobId);
     }
 
+    @Override
     public Date getStartedOn() {
         return startedOn;
     }
 
+    @Override
     public void setStartedOn(Date startedOn) {
         this.startedOn = startedOn;
     }
 
+    @Override
     public Date getEndedOn() {
         return endedOn;
     }
 
+    @Override
     public void setEndedOn(Date endedOn) {
         this.endedOn = endedOn;
     }
 
+
+    @Override
+    public void setTargetIds(Set<KapuaId> tagIds) {
+        this.targetIds = new HashSet<>();
+
+        for (KapuaId id : tagIds) {
+            this.targetIds.add(KapuaEid.parseKapuaId(id));
+        }
+    }
+
+    @Override
+    public Set<KapuaId> getTargetIds() {
+        Set<KapuaId> tagIds = new HashSet<>();
+
+        if (this.targetIds != null) {
+            for (KapuaId deviceTagId : this.targetIds) {
+                tagIds.add(new KapuaEid(deviceTagId));
+            }
+        }
+
+        return tagIds;
+    }
 }

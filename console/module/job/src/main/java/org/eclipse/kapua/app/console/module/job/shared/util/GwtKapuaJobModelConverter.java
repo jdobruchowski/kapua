@@ -37,30 +37,32 @@ import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.predicate.AttributePredicate.Operator;
 import org.eclipse.kapua.service.job.Job;
-import org.eclipse.kapua.service.job.JobFactory;
 import org.eclipse.kapua.service.job.JobAttributes;
+import org.eclipse.kapua.service.job.JobFactory;
 import org.eclipse.kapua.service.job.JobQuery;
-import org.eclipse.kapua.service.job.execution.JobExecutionFactory;
 import org.eclipse.kapua.service.job.execution.JobExecutionAttributes;
+import org.eclipse.kapua.service.job.execution.JobExecutionFactory;
 import org.eclipse.kapua.service.job.execution.JobExecutionQuery;
 import org.eclipse.kapua.service.job.step.JobStep;
+import org.eclipse.kapua.service.job.step.JobStepAttributes;
 import org.eclipse.kapua.service.job.step.JobStepCreator;
 import org.eclipse.kapua.service.job.step.JobStepFactory;
-import org.eclipse.kapua.service.job.step.JobStepAttributes;
 import org.eclipse.kapua.service.job.step.JobStepQuery;
 import org.eclipse.kapua.service.job.step.definition.JobStepDefinitionFactory;
 import org.eclipse.kapua.service.job.step.definition.JobStepDefinitionQuery;
 import org.eclipse.kapua.service.job.step.definition.JobStepProperty;
-import org.eclipse.kapua.service.job.targets.JobTargetFactory;
 import org.eclipse.kapua.service.job.targets.JobTargetAttributes;
+import org.eclipse.kapua.service.job.targets.JobTargetFactory;
 import org.eclipse.kapua.service.job.targets.JobTargetQuery;
-import org.eclipse.kapua.service.scheduler.trigger.TriggerFactory;
 import org.eclipse.kapua.service.scheduler.trigger.TriggerAttributes;
+import org.eclipse.kapua.service.scheduler.trigger.TriggerFactory;
 import org.eclipse.kapua.service.scheduler.trigger.TriggerProperty;
 import org.eclipse.kapua.service.scheduler.trigger.TriggerQuery;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class GwtKapuaJobModelConverter {
 
@@ -309,8 +311,8 @@ public class GwtKapuaJobModelConverter {
         return jobStartOptions;
     }
 
-    private static List<KapuaId> convertTargetIdSublist(List<String> gwtTargetIdSublist) {
-        List<KapuaId> targetIdSublist = new ArrayList<KapuaId>();
+    private static Set<KapuaId> convertTargetIdSublist(List<String> gwtTargetIdSublist) {
+        Set<KapuaId> targetIdSublist = new HashSet<KapuaId>();
         for (String gwtKapuaId : gwtTargetIdSublist) {
             targetIdSublist.add(GwtKapuaCommonsModelConverter.convertKapuaId(gwtKapuaId));
         }
