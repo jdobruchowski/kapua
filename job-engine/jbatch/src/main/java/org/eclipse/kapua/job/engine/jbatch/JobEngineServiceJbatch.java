@@ -20,7 +20,6 @@ import org.eclipse.kapua.job.engine.JobEngineService;
 import org.eclipse.kapua.job.engine.JobStartOptions;
 import org.eclipse.kapua.job.engine.jbatch.driver.JbatchDriver;
 import org.eclipse.kapua.job.engine.jbatch.exception.CleanJobDataException;
-import org.eclipse.kapua.job.engine.jbatch.exception.JobAlreadyRunningException;
 import org.eclipse.kapua.job.engine.jbatch.exception.JobCheckRunningException;
 import org.eclipse.kapua.job.engine.jbatch.exception.JobInvalidTargetException;
 import org.eclipse.kapua.job.engine.jbatch.exception.JobNotRunningException;
@@ -38,12 +37,12 @@ import org.eclipse.kapua.service.authorization.permission.PermissionFactory;
 import org.eclipse.kapua.service.job.Job;
 import org.eclipse.kapua.service.job.JobDomains;
 import org.eclipse.kapua.service.job.JobService;
-import org.eclipse.kapua.service.job.step.JobStepFactory;
 import org.eclipse.kapua.service.job.step.JobStepAttributes;
+import org.eclipse.kapua.service.job.step.JobStepFactory;
 import org.eclipse.kapua.service.job.step.JobStepQuery;
 import org.eclipse.kapua.service.job.step.JobStepService;
-import org.eclipse.kapua.service.job.targets.JobTargetFactory;
 import org.eclipse.kapua.service.job.targets.JobTargetAttributes;
+import org.eclipse.kapua.service.job.targets.JobTargetFactory;
 import org.eclipse.kapua.service.job.targets.JobTargetQuery;
 import org.eclipse.kapua.service.job.targets.JobTargetService;
 
@@ -116,12 +115,6 @@ public class JobEngineServiceJbatch implements JobEngineService {
         jobStepQuery.setPredicate(new AttributePredicateImpl<>(JobStepAttributes.JOB_ID, jobId));
         if (JOB_STEP_SERVICE.count(jobStepQuery) <= 0) {
             throw new KapuaJobEngineException(KapuaJobEngineErrorCodes.JOB_STEP_MISSING);
-        }
-
-        //
-        // Check job running
-        if (JbatchDriver.isRunningJob(scopeId, jobId)) {
-            throw new JobAlreadyRunningException(scopeId, jobId);
         }
 
         //

@@ -19,7 +19,6 @@ import com.ibm.jbatch.jsl.model.JSLJob;
 import com.ibm.jbatch.jsl.model.Step;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
-
 import org.eclipse.kapua.KapuaIllegalArgumentException;
 import org.eclipse.kapua.commons.model.query.predicate.AttributePredicateImpl;
 import org.eclipse.kapua.job.engine.JobStartOptions;
@@ -42,14 +41,13 @@ import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.job.Job;
 import org.eclipse.kapua.service.job.step.JobStep;
+import org.eclipse.kapua.service.job.step.JobStepAttributes;
 import org.eclipse.kapua.service.job.step.JobStepFactory;
 import org.eclipse.kapua.service.job.step.JobStepListResult;
-import org.eclipse.kapua.service.job.step.JobStepAttributes;
 import org.eclipse.kapua.service.job.step.JobStepQuery;
 import org.eclipse.kapua.service.job.step.JobStepService;
 import org.eclipse.kapua.service.job.step.definition.JobStepDefinition;
 import org.eclipse.kapua.service.job.step.definition.JobStepDefinitionService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -203,9 +201,9 @@ public class JbatchDriver {
 
         //
         // Check job running
-        if (isRunningJob(scopeId, jobId)) {
-            throw new JobExecutionIsRunningDriverException(JbatchDriver.getJbatchJobName(scopeId, jobId));
-        }
+//        if (isRunningJob(scopeId, jobId)) {
+//            throw new JobExecutionIsRunningDriverException(JbatchDriver.getJbatchJobName(scopeId, jobId));
+//        }
 
         //
         // Start job
