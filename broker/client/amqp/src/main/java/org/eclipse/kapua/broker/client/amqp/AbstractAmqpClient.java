@@ -178,7 +178,6 @@ public abstract class AbstractAmqpClient {
                     if(ar.succeeded()) {
                         logger.info("Succeeded establishing consumer link! (client: {})", client);
                         setConnected();
-                        setReceiverConnected();
                     }
                     else {
                         logger.warn("Cannot establish link! (client: {})", client, ar.cause());
@@ -216,10 +215,6 @@ public abstract class AbstractAmqpClient {
 
     protected void setConnected() {
         connected = true;
-    }
-
-    protected void setDisconnected() {
-        connected = false;
     }
 
     public void disconnect(Future<Void> stopFuture) {

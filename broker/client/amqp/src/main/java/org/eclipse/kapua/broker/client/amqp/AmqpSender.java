@@ -13,14 +13,15 @@ package org.eclipse.kapua.broker.client.amqp;
 
 import org.apache.qpid.proton.message.Message;
 import org.eclipse.kapua.broker.client.amqp.ClientOptions.AmqpClientOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.vertx.core.Vertx;
 import io.vertx.proton.ProtonQoS;
 
 public class AmqpSender extends AbstractAmqpClient {
 
-    //TODO make them configurable if needed
-    private final static ProtonQoS QOS = ProtonQoS.AT_LEAST_ONCE;
+    private static final Logger logger = LoggerFactory.getLogger(AmqpSender.class);
 
     //TODO make them configurable if needed
     private final static boolean AUTO_SETTLE = true;
