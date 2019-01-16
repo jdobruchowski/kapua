@@ -37,6 +37,7 @@ import org.eclipse.kapua.service.authorization.permission.PermissionFactory;
 import org.eclipse.kapua.service.job.Job;
 import org.eclipse.kapua.service.job.JobDomains;
 import org.eclipse.kapua.service.job.JobService;
+import org.eclipse.kapua.service.job.execution.JobExecutionService;
 import org.eclipse.kapua.service.job.step.JobStepAttributes;
 import org.eclipse.kapua.service.job.step.JobStepFactory;
 import org.eclipse.kapua.service.job.step.JobStepQuery;
@@ -55,6 +56,8 @@ public class JobEngineServiceJbatch implements JobEngineService {
     private static final PermissionFactory PERMISSION_FACTORY = LOCATOR.getFactory(PermissionFactory.class);
 
     private static final JobService JOB_SERVICE = LOCATOR.getService(JobService.class);
+
+    private static final JobExecutionService JOB_EXECUTION_SERVICE = LOCATOR.getService(JobExecutionService.class);
 
     private static final JobStepService JOB_STEP_SERVICE = LOCATOR.getService(JobStepService.class);
     private static final JobStepFactory JOB_STEP_FACTORY = LOCATOR.getFactory(JobStepFactory.class);
@@ -185,6 +188,7 @@ public class JobEngineServiceJbatch implements JobEngineService {
             throw new JobStopppingException(e, scopeId, jobId);
         }
     }
+
 
     @Override
     public void cleanJobData(KapuaId scopeId, KapuaId jobId) throws KapuaException {

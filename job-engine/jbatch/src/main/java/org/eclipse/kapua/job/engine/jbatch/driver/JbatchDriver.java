@@ -70,6 +70,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * Driver class for Java Batch API
@@ -200,12 +201,6 @@ public class JbatchDriver {
         }
 
         //
-        // Check job running
-//        if (isRunningJob(scopeId, jobId)) {
-//            throw new JobExecutionIsRunningDriverException(JbatchDriver.getJbatchJobName(scopeId, jobId));
-//        }
-
-        //
         // Start job
         try {
             JOB_OPERATOR.start(jobXmlDefinitionFile.getAbsolutePath().replaceAll("\\.xml$", ""), new Properties());
@@ -234,19 +229,21 @@ public class JbatchDriver {
 
         //
         // Check running
-        JobExecution runningExecution = getRunningJobExecution(scopeId, jobId);
-        if (runningExecution == null) {
+        List<JobExecution> runningExecutions = getRunningJobExecutions(scopeId, jobId);
+        if (runningExecutions.isEmpty()) {
             throw new ExecutionNotRunningDriverException(jobName);
         }
 
         //
         // Do stop
         try {
-            JOB_OPERATOR.stop(runningExecution.getExecutionId());
+            runningExecutions.forEach((runningExecution -> {
+                JOB_OPERATOR.stop(runningExecution.getExecutionId());
 
-            if (JOB_ENGINE_SETTING.getBoolean(KapuaJobEngineSettingKeys.JOB_ENGINE_STOP_WAIT_CHECK)) {
-                JbatchUtil.waitForStop(runningExecution, () -> JOB_OPERATOR.abandon(runningExecution.getExecutionId()));
-            }
+                if (JOB_ENGINE_SETTING.getBoolean(KapuaJobEngineSettingKeys.JOB_ENGINE_STOP_WAIT_CHECK)) {
+                    JbatchUtil.waitForStop(runningExecution, () -> JOB_OPERATOR.abandon(runningExecution.getExecutionId()));
+                }
+            }));
         } catch (NoSuchJobExecutionException e) {
             throw new ExecutionNotFoundDriverException(e, jobName);
         } catch (JobExecutionNotRunningException e) {
@@ -264,7 +261,7 @@ public class JbatchDriver {
      * @return {@code true} if the jBatch {@link Job} is running, {@code false} otherwise,
      */
     public static boolean isRunningJob(@NotNull KapuaId scopeId, @NotNull KapuaId jobId) {
-        return getRunningJobExecution(scopeId, jobId) != null;
+        return !getRunningJobExecutions(scopeId, jobId).isEmpty();
     }
 
     public static void cleanJobData(@NotNull KapuaId scopeId, @NotNull KapuaId jobId) throws CleanJobDataDriverException {
@@ -279,8 +276,8 @@ public class JbatchDriver {
     //
     // Private methods
     //
-    private static JobExecution getRunningJobExecution(@NotNull KapuaId scopeId, @NotNull KapuaId jobId) {
-        return getJobExecutions(scopeId, jobId).stream().filter(je -> JbatchJobRunningStatuses.getStatuses().contains(je.getBatchStatus())).findFirst().orElse(null);
+    private static List<JobExecution> getRunningJobExecutions(@NotNull KapuaId scopeId, @NotNull KapuaId jobId) {
+        return getJobExecutions(scopeId, jobId).stream().filter(je -> JbatchJobRunningStatuses.getStatuses().contains(je.getBatchStatus())).collect(Collectors.toList());
     }
 
     private static List<JobExecution> getJobExecutions(@NotNull KapuaId scopeId, @NotNull KapuaId jobId) {
