@@ -21,6 +21,12 @@ import org.eclipse.kapua.commons.setting.SettingKey;
 public enum AmqpClientSettingKeys implements SettingKey {
 
     /**
+     * The prefix for the id set to the AMQP Client
+     * 
+     * @since 1.0.0
+     */
+     CLIENT_ID_PREFIX("transport.amqp.client.id.prefix"),
+    /**
      * The username to use for AMQP connection
      * 
      * @since 1.0.0

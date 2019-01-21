@@ -12,27 +12,48 @@
 package org.eclipse.kapua.broker.client.amqp;
 
 import org.eclipse.kapua.broker.client.amqp.ClientOptions.AmqpClientOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.proton.ProtonQoS;
+import io.vertx.proton.ProtonSession;
 
 public class AmqpReceiver extends AbstractAmqpClient {
 
-    //TODO make them configurable if needed
+    private static final Logger logger = LoggerFactory.getLogger(AmqpSender.class);
+
     private final static Integer PREFETCH = new Integer(10);
     private final static boolean AUTO_ACCEPT = false;
     private final static ProtonQoS QOS = ProtonQoS.AT_MOST_ONCE;
 
+    private ProtonSession session;
     private String destination;
 
     public AmqpReceiver(Vertx vertx, ClientOptions clientOptions) {
         super(vertx, clientOptions);
+        connection.setAfterConnect(() -> {
+            session = connection.createSession();
+            session.openHandler(ar -> {
+                if (ar.succeeded()) {
+                    receiver = connection.createReceiver(session, destination, PREFETCH, AUTO_ACCEPT, QOS, null, messageHandler);
+                    receiver.openHandler(snd -> {
+                        logger.info("================Created receiver {}", receiver);
+                    });
+                    receiver.open();
+                }
+            });
+            session.closeHandler(ar -> {
+                logger.info("================Closed receiver {}", receiver);
+            });
+            session.open();
+        });
         destination = clientOptions.getString(AmqpClientOptions.DESTINATION);
     }
 
-    @Override
-    protected void doAfterConnect() {
-        createReceiver(destination, PREFETCH, AUTO_ACCEPT, QOS);
+    public void connect(Future<Void> connectFuture) {
+        connection.connect(connectFuture);
     }
 
 }

@@ -34,7 +34,7 @@ public class AmqpClientFactoryImpl implements TransportClientFactory<AmqpTopic, 
     @Override
     public AmqpFacade getFacade(Map<String, Object> configParameters)
             throws KapuaException {
-        return new AmqpFacade(formatNodeUri(configParameters.get("serverAddress").toString()));
+        return new AmqpFacade(formatNodeUri(configParameters.get("serverAddress").toString()), configParameters);
     }
 
     @Override

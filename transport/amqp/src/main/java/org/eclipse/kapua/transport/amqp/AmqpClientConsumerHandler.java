@@ -43,6 +43,8 @@ public class AmqpClientConsumerHandler implements ProtonMessageHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(AmqpClientConsumerHandler.class);
 
+    private final static String VT_TOPIC_PREFIX = "topic://VirtualTopic.";
+
     /**
      * List of received messages.
      * 
@@ -89,7 +91,7 @@ public class AmqpClientConsumerHandler implements ProtonMessageHandler {
             byte[] payload = null;
             if (body instanceof Data) {
                 Binary data = ((Data) body).getValue();
-                logger.info("Received DATA message");
+                logger.info("Received DATA message: size {}", data.getLength());
                 payload = data.getArray();
             } else if (body instanceof AmqpValue) {
                 String content = (String) ((AmqpValue) body).getValue();
@@ -109,9 +111,13 @@ public class AmqpClientConsumerHandler implements ProtonMessageHandler {
             if (responses == null) {
                 responses = new ArrayList<AmqpMessage>();
             }
-
+            //TODO FIXME why the message interchanges between AMQP-MQTT connectors (with MQTT virtual topic on) on AtiveMQ doesn't clean the topic://VirtualTopic prefix?
+            if (amqpMessage.getChannel().getTopic().toString().startsWith(VT_TOPIC_PREFIX)) {
+                amqpMessage.setChannel(new AmqpTopic(amqpMessage.getChannel().getTopic().toString().substring(VT_TOPIC_PREFIX.length()).replaceAll("\\.", "/")));
+            }
             //
             // Convert MqttMessage to the given device-levelMessage
+            logger.info("************ {}", amqpMessage.getPayload());
             responses.add(amqpMessage);
 
             //

@@ -16,6 +16,7 @@ import org.eclipse.kapua.broker.client.amqp.ClientOptions.AmqpClientOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.proton.ProtonQoS;
 
@@ -23,7 +24,6 @@ public class AmqpSender extends AbstractAmqpClient {
 
     private static final Logger logger = LoggerFactory.getLogger(AmqpSender.class);
 
-    //TODO make them configurable if needed
     private final static boolean AUTO_SETTLE = true;
     private final static ProtonQoS QOS = ProtonQoS.AT_LEAST_ONCE;
 
@@ -32,17 +32,31 @@ public class AmqpSender extends AbstractAmqpClient {
     public AmqpSender(Vertx vertx, ClientOptions clientOptions) {
         super(vertx, clientOptions);
         destination = clientOptions.getString(AmqpClientOptions.DESTINATION);
-    }
-
-    public void send(Message message) {
-        super.send(message, destination, ar -> {
-            logger.debug("Message sent to destination: {} - Message: {}", destination, message);
+        connection.setAfterConnect(() -> {
+            session = connection.createSession();
+            session.openHandler(ar -> {
+                if (ar.succeeded()) {
+                    sender = connection.createSender(session, destination, AUTO_SETTLE, QOS, null);
+                    sender.openHandler(snd -> {
+                        logger.info("================Created sender {}", sender);
+                    });
+                    sender.open();
+                }
+            });
+            session.closeHandler(ar -> {
+                logger.info("================Closed sender {}", sender);
+            });
         });
     }
 
-    @Override
-    protected void doAfterConnect() {
-        createSender(destination, AUTO_SETTLE, QOS);
+    public void connect(Future<Void> connectFuture) {
+        connection.connect(connectFuture);
+    }
+
+    public void send(Message message) {
+        connection.send(sender, message, destination, ar -> {
+            logger.debug("Message sent to destination: {} - Message: {}", destination, message);
+        });
     }
 
 }
