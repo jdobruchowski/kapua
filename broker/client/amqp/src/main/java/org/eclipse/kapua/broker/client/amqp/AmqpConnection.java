@@ -57,9 +57,9 @@ public class AmqpConnection {
     private Integer idleTimeout;
     private ProtonClientOptions options;
     private ProtonClient client;
-    private ProtonConnection connection;
     private ClientOptions clientOptions;
-    private AfterConnect afterConnect;
+
+    protected ProtonConnection connection;
 
     public AmqpConnection(Vertx vertx, ClientOptions clientOptions) {
         logger.info("##################Vertx: {}", vertx);
@@ -76,7 +76,7 @@ public class AmqpConnection {
         idleTimeout = clientOptions.getInt(AmqpClientOptions.IDLE_TIMEOUT, null);
         options = new ProtonClientOptions();
         //TODO add ssl parameters
-        logger.info("Parameters: connect timeout: {} - idle timeout: {} - wait between reconnect: {}", connectTimeout, idleTimeout, waitBetweenReconnect);
+        logger.info("CCCCCCCC-Parameters: connect timeout: {} - idle timeout: {} - wait between reconnect: {}", connectTimeout, idleTimeout, waitBetweenReconnect);
         if (connectTimeout != null) {
             options.setConnectTimeout(connectTimeout);
         }
@@ -93,11 +93,7 @@ public class AmqpConnection {
             waitBetweenReconnect = new Integer(1000);
         }
         options.setMaxFrameSize(1024*1024);
-        logger.info("Created client {}", client);
-    }
-
-    public void setAfterConnect(AfterConnect afterConnect) {
-        this.afterConnect = afterConnect;
+        logger.info("CCCCCCCC-Created client {}", client);
     }
 
     public String getClientId() {
@@ -123,35 +119,37 @@ public class AmqpConnection {
     protected ProtonReceiver createReceiver(ProtonSession session, String destination, int prefetch, boolean autoAccept, ProtonQoS qos, CountDownLatch receiverCountDown, ProtonMessageHandler messageHandler) {
         ProtonReceiver receiver = null;
         try {
-            logger.info("Register consumer for destination {}... (session: {})", destination, session);
+            logger.info("CCCCCCCC-Register consumer for destination {}... (session: {})", destination, session);
+            ProtonLinkOptions options = new ProtonLinkOptions();
+            options.setLinkName(String.format("%s-rcv", clientId));
             // The client ID is set implicitly into the destination subscribed
-            receiver = session.createReceiver(destination);
+            receiver = session.createReceiver(destination, options);
 
             //default values not changeable by config
             receiver.setAutoAccept(autoAccept);
             receiver.setQoS(qos);
             receiver.setPrefetch(prefetch);
-            logger.info("Setting auto accept: {} - QoS: {} - prefetch: {}", autoAccept, qos, prefetch);
+            logger.info("CCCCCCCC-Setting auto accept: {} - QoS: {} - prefetch: {}", autoAccept, qos, prefetch);
 
             receiver.handler(messageHandler);
             receiver.openHandler(ar -> {
                 if(ar.succeeded()) {
-                    logger.info("Succeeded establishing consumer link! (session: {})", session);
+                    logger.info("CCCCCCCC-Succeeded establishing consumer link! (session: {})", session);
                     if (receiverCountDown != null) {
                         receiverCountDown.countDown();
                     }
                 }
                 else {
-                    logger.warn("Cannot establish link! (session: {})", session, ar.cause());
+                    logger.warn("CCCCCCCC-Cannot establish link! (session: {})", session, ar.cause());
                     notifyConnectionLost();
                 }
             });
             receiver.closeHandler(recv -> {
-                logger.warn("Receiver is closed! (session: {})", session, recv.cause());
+                logger.warn("CCCCCCCC-Receiver is closed! (session: {})", session, recv.cause());
                 notifyConnectionLost();
             });
             receiver.open();
-            logger.info("Register consumer for destination {}... DONE (session: {})", destination, session);
+            logger.info("CCCCCCCC-Register consumer for destination {}... DONE (session: {})", destination, session);
         }
         catch(Exception e) {
             notifyConnectionLost();
@@ -162,34 +160,35 @@ public class AmqpConnection {
     protected ProtonSender createSender(ProtonSession session, String destination, boolean autoSettle, ProtonQoS qos, CountDownLatch senderCountDown) {
         ProtonSender sender = null;
         try {
-            logger.info("Register sender for destination {}... (session: {})", destination, session);
+            logger.info("CCCCCCCC-Register sender for destination {}... (session: {})", destination, session);
             ProtonLinkOptions senderOptions = new ProtonLinkOptions();
+            senderOptions.setLinkName(String.format("%s-snd", clientId));
             // The client ID is set implicitly into the destination subscribed
             sender = session.createSender(destination, senderOptions);
 
             //default values not changeable by config
             sender.setQoS(qos);
             sender.setAutoSettle(autoSettle);
-            logger.info("Setting auto accept: {} - QoS: {}", autoSettle, qos);
+            logger.info("CCCCCCCC-Setting auto accept: {} - QoS: {}", autoSettle, qos);
 
             sender.openHandler(ar -> {
                if (ar.succeeded()) {
-                   logger.info("Register sender for destination {}... DONE (session: {})", destination, session);
+                   logger.info("CCCCCCCC-Register sender for destination {}... DONE (session: {})", destination, session);
                    if (senderCountDown != null) {
                        senderCountDown.countDown();
                    }
                }
                else {
-                   logger.info("Register sender for destination {}... FAILED... (session: {})", destination, session, ar.cause());
+                   logger.info("CCCCCCCC-Register sender for destination {}... FAILED... (session: {})", destination, session, ar.cause());
                    notifyConnectionLost();
                }
             });
             sender.closeHandler(snd -> {
-                logger.warn("Sender is closed! (session: {})", session, snd.cause());
+                logger.warn("CCCCCCCC-Sender is closed! (session: {})", session, snd.cause());
                 notifyConnectionLost();
             });
             sender.open();
-            logger.info("Register sender for destination {}... DONE (session: {})", destination, session);
+            logger.info("CCCCCCCC-Register sender for destination {}... DONE (session: {})", destination, session);
         }
         catch(Exception e) {
             notifyConnectionLost();
@@ -209,10 +208,10 @@ public class AmqpConnection {
     }
 
     public void connect(Future<Void> startFuture) {
-        logger.info("Connecting to broker {}:{}... (client: {})", brokerHost, brokerPort, client);
+        logger.info("CCCCCCCC-Connecting to broker {}:{}... (client: {})", brokerHost, brokerPort, client);
         // make sure connection is already closed
         if (connection != null && !connection.isDisconnected()) {
-            logger.warn("Unable to connect: still connected");
+            logger.warn("CCCCCCCC-Unable to connect: still connected");
             //in any case complete with a positive result the future
             if (!startFuture.isComplete()) {
                 startFuture.complete();
@@ -240,53 +239,54 @@ public class AmqpConnection {
             asynchResult ->{
                 if (asynchResult.succeeded()) {
                     connection = asynchResult.result();
-                    logger.info("Connecting to broker {}:{}... DONE (client: {})", brokerHost, brokerPort, client);
+                    logger.info("CCCCCCCC-Connecting to broker {}:{}... DONE (client: {})", brokerHost, brokerPort, client);
                     connection.openHandler(event -> {
                         if (event.succeeded()) {
                             connection = event.result();
-                            if (afterConnect != null) {
-                                afterConnect.doAfterConnect();
-                            }
-                            //in any case complete with a positive result the future
-                            if (!startFuture.isComplete()) {
-                                startFuture.complete();
-                            }
+                            doAfterConnect(startFuture);
                         }
                         else {
                             notifyConnectionLost();
                         }
                     });
                     connection.disconnectHandler(conn -> {
-                        logger.warn("Client ({}) is closed!", client);
+                        logger.warn("CCCCCCCC-Client ({}) is closed!", client);
                         notifyConnectionLost();
                     });
                     connection.closeHandler(conn -> {
-                        logger.warn("Client ({}) is closed!", client);
+                        logger.warn("CCCCCCCC-Client ({}) is closed!", client);
                         notifyConnectionLost();
                     });
                     connection.open();
                 } else {
-                    logger.error("Cannot register ActiveMQ connection! (client: {})", asynchResult.cause().getCause(), client);
+                    logger.error("CCCCCCCC-Cannot register ActiveMQ connection! (client: {})", asynchResult.cause().getCause(), client);
                     notifyConnectionLost();
                 }
             });
     }
 
+    protected void doAfterConnect(Future<Void> startFuture) {
+        //in any case complete with a positive result the future
+        if (!startFuture.isComplete()) {
+            startFuture.complete();
+        }
+    }
+
     protected void notifyConnectionLost() {
-        logger.info("Notify disconnection... (client: {})", client);
+        logger.info("CCCCCCCC-Notify disconnection... (client: {})", client);
         setDisconnected();
         doReconnect();
     }
 
     protected void doReconnect() {
         if (disconnecting) {
-            logger.info("Notify disconnection... shutdown in progress - skipping reconnection! (client: {})", client);
+            logger.info("CCCCCCCC-Notify disconnection... shutdown in progress - skipping reconnection! (client: {})", client);
             return;
         }
         if (reconnectTaskId == null) {
             if (reconnectTaskId == null) {
                 long backOff = evaluateBackOff();
-                logger.info("Notify disconnection... Start new task {} (client: {})", backOff, client);
+                logger.info("CCCCCCCC-Notify disconnection... Start new task {} (client: {})", backOff, client);
                 reconnectTaskId = vertx.setTimer(backOff, new Handler<Long>() {
 
                     @Override
@@ -295,13 +295,13 @@ public class AmqpConnection {
                         future.setHandler(result -> {
                             reconnectTaskId = null;
                             if (result.succeeded()) {
-                                logger.info("Establish connection retry {}... SUCCESS (client: {})", reconnectionFaultCount.get(), client);
+                                logger.info("CCCCCCCC-Establish connection retry {}... SUCCESS (client: {})", reconnectionFaultCount.get(), client);
                                 reconnectionFaultCount.set(0);
                             } else {
-                                logger.info("Establish connection retry {}... FAILURE (client: {})", reconnectionFaultCount.get(), result.cause(), client);
+                                logger.info("CCCCCCCC-Establish connection retry {}... FAILURE (client: {})", reconnectionFaultCount.get(), result.cause(), client);
                                 if (reconnectionFaultCount.incrementAndGet() > clientOptions.getInt(AmqpClientOptions.MAXIMUM_RECONNECTION_ATTEMPTS, -1) && 
                                         clientOptions.getInt(AmqpClientOptions.MAXIMUM_RECONNECTION_ATTEMPTS, -1)>-1) {
-                                    logger.error("Maximum reconnection attempts reached. Exiting... (client: {})", client);
+                                    logger.error("CCCCCCCC-Maximum reconnection attempts reached. Exiting... (client: {})", client);
                                     System.exit(clientOptions.getInt(AmqpClientOptions.EXIT_CODE, -1));
                                 };
                                 //schedule a new task
@@ -309,18 +309,18 @@ public class AmqpConnection {
                             }
                         });
                         connect(future);
-                        logger.info("Started new connection done (client: {})", client);
+                        logger.info("CCCCCCCC-Started new connection done (client: {})", client);
                     }
                 });
             }
             else {
-                logger.info("Another reconnect operation is enqueed. No action will be taken! (client: {})", client);
+                logger.info("CCCCCCCC-Another reconnect operation is enqueed. No action will be taken! (client: {})", client);
             }
         }
         else {
-            logger.info("Another reconnect operation is enqueed. No action will be taken! (client: {})", client);
+            logger.info("CCCCCCCC-Another reconnect operation is enqueed. No action will be taken! (client: {})", client);
         }
-        logger.info("Notify disconnection... DONE client: {})", client);
+        logger.info("CCCCCCCC-Notify disconnection... DONE client: {})", client);
     }
 
     private long evaluateBackOff() {
@@ -329,13 +329,21 @@ public class AmqpConnection {
 
     public void disconnect(Future<Void> stopFuture) {
         disconnecting = true;
-        logger.info("Closing connection {} for client {}", connection, client);
+        logger.info("CCCCCCCC-Closing connection {} for client {}", connection, client);
         if (connection != null) {
             connection.disconnect();
-            logger.info("Closing connection {} for client {} DONE", connection, client);
+            connection.closeHandler(event -> {
+                if (event.succeeded()) {
+                    if (!stopFuture.isComplete()) {
+                        stopFuture.complete();
+                    }
+                    logger.info("CCCCCCCC-Closing connection {} for client {} DONE", connection, client);
+                }
+                else {
+                    logger.info("CCCCCCCC-Closing connection {} for client {} ERROR {}", connection, client, (event.cause()!=null ? event.cause().getCause() : "N/A"), event.cause());
+                }
+            });
             connection = null;
         }
-        //in any case complete with a positive result the future
-        stopFuture.complete();
     }
 }

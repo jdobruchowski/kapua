@@ -18,7 +18,7 @@ import org.apache.qpid.proton.amqp.messaging.Section;
 import org.apache.qpid.proton.message.Message;
 import org.eclipse.kapua.KapuaErrorCodes;
 import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.broker.client.amqp.AmqpReceiverSender;
+import org.eclipse.kapua.broker.client.amqp.AmqpClient;
 import org.eclipse.kapua.broker.client.amqp.ClientOptions;
 import org.eclipse.kapua.broker.client.amqp.DestinationTranslator;
 import org.eclipse.kapua.broker.client.amqp.ClientOptions.AmqpClientOptions;
@@ -52,7 +52,7 @@ public class AmqpFacade implements TransportFacade<AmqpTopic, AmqpPayload, AmqpM
      *
      * @since 1.0.0
      */
-    private AmqpReceiverSender client;
+    private AmqpClient client;
 
     /**
      * The client callback for this set of requests.

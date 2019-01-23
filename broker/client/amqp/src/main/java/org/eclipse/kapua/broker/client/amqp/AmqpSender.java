@@ -19,44 +19,54 @@ import org.slf4j.LoggerFactory;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.proton.ProtonQoS;
+import io.vertx.proton.ProtonSender;
+import io.vertx.proton.ProtonSession;
 
-public class AmqpSender extends AbstractAmqpClient {
+public class AmqpSender extends AmqpConnection {
 
     private static final Logger logger = LoggerFactory.getLogger(AmqpSender.class);
 
     private final static boolean AUTO_SETTLE = true;
     private final static ProtonQoS QOS = ProtonQoS.AT_LEAST_ONCE;
 
+    private ProtonSession session;
+    private ProtonSender sender;
     private String destination;
 
     public AmqpSender(Vertx vertx, ClientOptions clientOptions) {
         super(vertx, clientOptions);
         destination = clientOptions.getString(AmqpClientOptions.DESTINATION);
-        connection.setAfterConnect(() -> {
-            session = connection.createSession();
-            session.openHandler(ar -> {
-                if (ar.succeeded()) {
-                    sender = connection.createSender(session, destination, AUTO_SETTLE, QOS, null);
-                    sender.openHandler(snd -> {
-                        logger.info("================Created sender {}", sender);
-                    });
-                    sender.open();
-                }
-            });
-            session.closeHandler(ar -> {
-                logger.info("================Closed sender {}", sender);
-            });
-        });
     }
 
-    public void connect(Future<Void> connectFuture) {
-        connection.connect(connectFuture);
+    @Override
+    protected void doAfterConnect(Future<Void> startFuture) {
+        session = connection.createSession();
+        session.openHandler(ar -> {
+            if (ar.succeeded()) {
+                sender = createSender(session, destination, AUTO_SETTLE, QOS, null);
+                sender.openHandler(rec -> {
+                    if (rec.succeeded()) {
+                        logger.info("================Created sender {}", sender);
+                    }
+                    else {
+                        logger.info("================Created sender {} ERROR", sender);
+                        notifyConnectionLost();
+                    }
+                    super.doAfterConnect(startFuture);
+                });
+                sender.open();
+            }
+        });
+        session.closeHandler(ar -> {
+            logger.info("================Closed sender session {}", sender);
+            notifyConnectionLost();
+        });
+        session.open();
     }
 
     public void send(Message message) {
-        connection.send(sender, message, destination, ar -> {
+        super.send(sender, message, destination, ar -> {
             logger.debug("Message sent to destination: {} - Message: {}", destination, message);
         });
-    }
-
+}
 }
